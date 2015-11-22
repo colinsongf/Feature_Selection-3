@@ -71,20 +71,21 @@ def CalcStd(instances, num_instances, num_features, mean):
 
 def NormalizeData(instances, num_instances, num_features):
     """ Calculates normalized data """
-    normalized_instances = instances
-    mean = CalcMean(normalized_instances, num_instances, num_features)
-    std = CalcStd(normalized_instances, num_instances, num_features, mean)
+    normalized_instances = list(instances)
+    mean = CalcMean(instances, num_instances, num_features)
+    std = CalcStd(instances, num_instances, num_features, mean)
     for i in range(0, num_instances):
-       for j in range(1, num_features + 1):
-           normalized_instances[i][j] = ((instances[i][j] - mean[j-1]) / std[j-1])
+        for j in range(1, num_features + 1):
+            normalized_instances[i][j] = ((instances[i][j] - mean[j-1]) / std[j-1])
+
     return normalized_instances
 
 def ForwardSelection(data, num_instances, num_features):
     current_set_of_features = set()
+    best_so_far_accuracy = 0
     for i in range(num_features):
         print("On %d level of the search tree" % (i+ 1))
         feature_to_add = 0
-        best_so_far_accuracy = 0
 
         for j in range(num_features):
             if ((j + 1) not in current_set_of_features):
@@ -95,11 +96,13 @@ def ForwardSelection(data, num_instances, num_features):
                 if accuracy > best_so_far_accuracy:
                     best_so_far_accuracy = accuracy
                     feature_to_add = j + 1
-
+        if (feature_to_add == 0):
+            break
         current_set_of_features.add(feature_to_add)
         print("On %d level of the search tree, add feature %d" % ((i+1), feature_to_add))
 
     print("Best set of features to use: ", current_set_of_features)
+    print("Accuracy: ", best_so_far_accuracy)
 
 
 def BackwardElimination(data, num_instances, num_features):
@@ -182,8 +185,13 @@ def main():
                        CS - Custom Search
                     \r""")
     num_features = len(instances[0]) - 1
+    pprint(instances)
     normalized_instances = NormalizeData(instances, num_instances, num_features)
     print("There are %d features with %d instances." % (num_features, num_instances))
+    pprint(instances)
+    print("*" * 30)
+    pprint(normalized_instances)
+
     if (alg == "FS"):
         ForwardSelection(normalized_instances, num_instances, num_features)
     elif (alg == "BE"):
