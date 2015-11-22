@@ -1,5 +1,6 @@
 from pprint import pprint
 import random
+import math
 
 # instances[i][0] is class name
 # instances[i][1] for feature 1
@@ -15,6 +16,23 @@ def LoadData(file_name, num_instances):
         instances[i] = [float(j) for j in f.readline().split()]
     return instances
 
+def CalcDistance(instances, one_out, features):
+    pass
+
+def NearestNeighbor(instances, one_out, features):
+    """
+    Implement own method: returns accuracy of a test based on NN
+
+    Want to use scikitlearn nearest neighbor for learning purposes
+    """
+    for i in range(0, len(instances)):
+
+        pass
+
+
+
+    pass
+
 def OneOutCrossValidation(instances, current_features, feature_to_add):
     """
     Implement own method
@@ -28,6 +46,28 @@ def OneOutCrossValidation(instances, current_features, feature_to_add):
     accuracy = random.randint(0, 100)
 
     return accuracy
+
+def CalcMean(instances, num_instances, num_features):
+    mean = []
+    for i in range(1, num_features + 1): # Add one to exclude the class data
+        mean.append((sum(row[i] for row in instances)) / num_instances)
+    return mean
+
+def CalcStd(instances, num_instances, num_features, mean):
+    std = []
+    for i in range(1, num_features + 1):
+        std.append(math.sqrt((sum(pow((row[i] - mean[i-1]), 2) for row in instances)) / num_instances))
+    return std
+
+def NormalizeData(instances, num_instances, num_features):
+    """ Calculates normalized data """
+    normalized_instances = instances
+    mean = CalcMean(normalized_instances, num_instances, num_features)
+    std = CalcStd(normalized_instances, num_instances, num_features, mean)
+    for i in range(0, num_instances):
+       for j in range(1, num_features + 1):
+           normalized_instances[i][j] = ((instances[i][j] - mean[j-1]) / std[j-1])
+    return normalized_instances
 
 def ForwardSelection(data, num_instances, num_features):
     current_set_of_features = set()
@@ -118,14 +158,6 @@ def CustomSearch(data, num_instances, num_features):
     """
     pass
 
-def NearestNeighbor(data, current_set):
-    """
-    Implement on method
-
-    Want to use scikitlearn nearest neighbor for learning purposes
-    """
-    pass
-
 def main():
     file_name = input("Enter the name of the file to test: ")
     num_instances = int(input("Enter the number of instances to read: "))
@@ -139,13 +171,14 @@ def main():
                        CS - Custom Search
                     \r""")
     num_features = len(instances[0]) - 1
+    normalized_instances = NormalizeData(instances, num_instances, num_features)
     print("There are %d features with %d instances." % (num_features, num_instances))
     if (alg == "FS"):
-        ForwardSelection(instances, num_instances, num_features)
+        ForwardSelection(normalized_instances, num_instances, num_features)
     elif (alg == "BE"):
-        BackwardElimination(instances, num_instances, num_features)
+        BackwardElimination(normalized_instances, num_instances, num_features)
     else:
-        CustomSearch(instances, num_instances, num_features)
+        CustomSearch(normalized_instances, num_instances, num_features)
 
 if __name__ == '__main__':
     main()
