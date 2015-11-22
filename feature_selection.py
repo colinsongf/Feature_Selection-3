@@ -16,35 +16,45 @@ def LoadData(file_name, num_instances):
         instances[i] = [float(j) for j in f.readline().split()]
     return instances
 
-def CalcDistance(instances, one_out, features):
-    pass
-
-def NearestNeighbor(instances, one_out, features):
+def NearestNeighbor(instances, num_instances, one_out, features):
     """
-    Implement own method: returns accuracy of a test based on NN
-
-    Want to use scikitlearn nearest neighbor for learning purposes
+    Want to use scikitlearn nearest neighbor for learning purposes -- if I have time/not lazy
     """
-    for i in range(0, len(instances)):
+    nearest_neighbor = -1
+    nearest_neighbor_distance = float('inf')
+    num_features = len(features)
+    for i in range(0, num_instances):
+        if (i == one_out):
+            pass
+        else:
+            sum = 0
+            for j in range(0, num_features):
+                sum = sum + pow((instances[i][features[j]] - instances[one_out][features[j]]), 2)
+            distance = math.sqrt(sum)
+            if distance < nearest_neighbor_distance:
+                nearest_neighbor_distance = distance
+                nearest_neighbor = i
+    return nearest_neighbor
 
-        pass
+def CheckClassification(instances, nearest_neighbor, one_out):
+    if (instances[nearest_neighbor][0] != instances[one_out][0]):
+        return False
+    return True
 
-
-
-    pass
-
-def OneOutCrossValidation(instances, current_features, feature_to_add):
+def OneOutCrossValidation(instances, num_instances, current_features, feature_to_add):
     """
-    Implement own method
-    instances == data
-    current_features is our set
-    feature_to_add is j+1 for testing accuracy
-
-    Also want to use scikitlearn for learning purposes
+    Also want to use scikitlearn for learning purposes -- if I have time/not lazy
     """
     list_features = list(current_features)
-    accuracy = random.randint(0, 100)
-
+    list_features.append(feature_to_add)
+    num_correct = 0
+    for i in range(0, num_instances):
+        one_out = i
+        nearest_neighbor = NearestNeighbor(instances, num_instances, one_out, list_features)
+        correct_classification = CheckClassification(instances, nearest_neighbor, one_out)
+        if (correct_classification):
+            num_correct += 1
+    accuracy = num_correct / num_instances
     return accuracy
 
 def CalcMean(instances, num_instances, num_features):
@@ -78,8 +88,9 @@ def ForwardSelection(data, num_instances, num_features):
 
         for j in range(num_features):
             if ((j + 1) not in current_set_of_features):
-                print("Consider adding  %d feature to set" % (j + 1))
-                accuracy = OneOutCrossValidation(data, current_set_of_features, j + 1)
+                print("Consider adding feature %d to set" % (j + 1))
+                accuracy = OneOutCrossValidation(data, num_instances, current_set_of_features, j + 1)
+                print("Accuracy: ", accuracy)
 
                 if accuracy > best_so_far_accuracy:
                     best_so_far_accuracy = accuracy
@@ -100,8 +111,8 @@ def BackwardElimination(data, num_instances, num_features):
 
         for j in range(num_features):
             if ((j+1) in current_set_of_features):
-                print("Consider removing %d feature from set" % (j+1))
-                accuracy = OneOutCrossValidation(data, current_set_of_features, j+1)
+                print("Consider removing feature %d from set" % (j+1))
+                accuracy = OneOutCrossValidation(data, num_instances, current_set_of_features, j+1)
 
                 if accuracy > best_so_far_accuracy:
                     best_so_far_accuracy = accuracy
