@@ -41,12 +41,20 @@ def CheckClassification(instances, nearest_neighbor, one_out):
         return False
     return True
 
-def OneOutCrossValidation(instances, num_instances, current_features, feature_to_add):
+def OneOutCrossValidation(instances, num_instances, current_features, my_feature):
     """
+    Pass in positive to add, negative to remove abs(my_feature)
     Also want to use scikitlearn for learning purposes -- if I have time/not lazy
     """
-    list_features = list(current_features)
-    list_features.append(feature_to_add)
+    if my_feature > 0:
+        list_features = list(current_features)
+        list_features.append(my_feature)
+    elif my_feature < 0:
+        my_feature = my_feature * -1
+        current_features.remove(my_feature)
+        list_features = list(current_features)
+        current_features.add(my_feature)
+
     num_correct = 0
     for i in range(0, num_instances):
         one_out = i
@@ -55,6 +63,7 @@ def OneOutCrossValidation(instances, num_instances, current_features, feature_to
         if (correct_classification):
             num_correct += 1
     accuracy = num_correct / num_instances
+    print("Testing features: ", list_features, " with accuracy %f" % accuracy)
     return accuracy
 
 def CalcMean(instances, num_instances, num_features):
@@ -70,14 +79,13 @@ def CalcStd(instances, num_instances, num_features, mean):
     return std
 
 def NormalizeData(instances, num_instances, num_features):
-    """ Calculates normalized data """
+    """ Normalizes instances -- note: both instances label point to same list """
     normalized_instances = list(instances)
     mean = CalcMean(instances, num_instances, num_features)
     std = CalcStd(instances, num_instances, num_features, mean)
     for i in range(0, num_instances):
         for j in range(1, num_features + 1):
             normalized_instances[i][j] = ((instances[i][j] - mean[j-1]) / std[j-1])
-
     return normalized_instances
 
 def ForwardSelection(data, num_instances, num_features):
@@ -85,46 +93,45 @@ def ForwardSelection(data, num_instances, num_features):
     best_so_far_accuracy = 0
     for i in range(num_features):
         print("On %d level of the search tree" % (i+ 1))
-        feature_to_add = 0
-
-        for j in range(num_features):
-            if ((j + 1) not in current_set_of_features):
-                print("Consider adding feature %d to set" % (j + 1))
-                accuracy = OneOutCrossValidation(data, num_instances, current_set_of_features, j + 1)
-                print("Accuracy: ", accuracy)
-
+        feature_to_add = -1
+        for j in range(1, num_features + 1):
+            if (j not in current_set_of_features):
+                accuracy = OneOutCrossValidation(data, num_instances, current_set_of_features, j)
                 if accuracy > best_so_far_accuracy:
                     best_so_far_accuracy = accuracy
-                    feature_to_add = j + 1
-        if (feature_to_add == 0):
+                    feature_to_add = j
+        # if (feature_to_add <=0):
+            # break
+        if (feature_to_add >  0):
+            current_set_of_features.add(feature_to_add)
+            print("On %d level of the search tree, adding feature %d gives accuracy: %f" \
+            % ((i+1), feature_to_add, best_so_far_accuracy))
+        else:
             break
-        current_set_of_features.add(feature_to_add)
-        print("On %d level of the search tree, add feature %d" % ((i+1), feature_to_add))
-
     print("Best set of features to use: ", current_set_of_features)
     print("Accuracy: ", best_so_far_accuracy)
 
 
 def BackwardElimination(data, num_instances, num_features):
     current_set_of_features = set(i+1 for i in range(0, num_features))
+    best_so_far_accuracy = 0
     for i in range(num_features):
         print("On %d level of the search tree" % (i+1))
-        feature_to_remove = 0
-        best_so_far_accuracy = 0
-
-        for j in range(num_features):
-            if ((j+1) in current_set_of_features):
-                print("Consider removing feature %d from set" % (j+1))
-                accuracy = OneOutCrossValidation(data, num_instances, current_set_of_features, j+1)
-
+        feature_to_remove = -1
+        for j in range(1, num_features + 1):
+            if (j in current_set_of_features):
+                accuracy = OneOutCrossValidation(data, num_instances, current_set_of_features, (-1 *j))
                 if accuracy > best_so_far_accuracy:
                     best_so_far_accuracy = accuracy
-                    feature_to_remove = j + 1
-
-        current_set_of_features.remove(feature_to_remove)
-        print("On %d level of the search tree, remove feature %d" % ((i+1), feature_to_remove))
-
+                    feature_to_remove = j
+        if (feature_to_remove > 0):
+            current_set_of_features.remove(feature_to_remove)
+            print("On %d level of the search tree, removing feature %d gives accuracy: %f" \
+            % ((i+1), feature_to_remove, best_so_far_accuracy))
+        else:
+            break
     print("Best set of features to use: ", current_set_of_features)
+    print("Accuracy: ", best_so_far_accuracy)
 
 def CustomSearch(data, num_instances, num_features):
     """
@@ -185,13 +192,8 @@ def main():
                        CS - Custom Search
                     \r""")
     num_features = len(instances[0]) - 1
-    pprint(instances)
     normalized_instances = NormalizeData(instances, num_instances, num_features)
     print("There are %d features with %d instances." % (num_features, num_instances))
-    pprint(instances)
-    print("*" * 30)
-    pprint(normalized_instances)
-
     if (alg == "FS"):
         ForwardSelection(normalized_instances, num_instances, num_features)
     elif (alg == "BE"):
