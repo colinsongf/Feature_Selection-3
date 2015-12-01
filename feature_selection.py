@@ -37,12 +37,15 @@ def ForwardSelection(data, num_instances, num_features):
             % ((i+1), feature_to_add, best_so_far_accuracy))
             print("-" * 50)
         else:
-            print("NOTE: Accuracy decreasing, stopping here.")
+            print("*** NOTE: Accuracy decreasing, stopping here.")
             break
     print("-" * 50)
     print("Best set of features to use: ", current_set_of_features, "with accuracy", best_so_far_accuracy)
 
 def BackwardElimination(data, num_instances, num_features):
+    """
+    To remove feature X, pass in -X to OneOutCrossValidation
+    """
     current_set_of_features = set(i+1 for i in range(0, num_features))
     best_so_far_accuracy = 0
     print("-" * 50)
@@ -51,7 +54,6 @@ def BackwardElimination(data, num_instances, num_features):
         feature_to_remove = -1
         for j in range(1, num_features + 1):
             if (j in current_set_of_features):
-                # pass in -j to remove feature
                 accuracy = my_nn.OneOutCrossValidation(data, num_instances, current_set_of_features, (-1 *j))
                 if accuracy > best_so_far_accuracy:
                     best_so_far_accuracy = accuracy
@@ -62,6 +64,7 @@ def BackwardElimination(data, num_instances, num_features):
                 % ((i+1), feature_to_remove, best_so_far_accuracy))
             print("-" * 50)
         else:
+            print("*** NOTE: Accuracy decreasing, stopping here.")
             break
     print("-" * 50)
     print("Best set of features to use:", current_set_of_features,"with accuracy", best_so_far_accuracy)
@@ -74,14 +77,11 @@ def AcceptanceProbability(rand_acc, best_acc, temp):
 def CustomSearch(data, num_instances, num_features):
     """
     Simple simulated annealing -- referenced ktrinaeg.com and theprojectspot.com
+    Instead of making a random initial set with X features, I found it more
+    effective to start with a random single feature, because these
+    data sets tend to favor fewer features when classifying
     """
-    # make two random subsets with elements that do not overlap with the other set
-    # current_set_of_features will at most have num_features / 2 to make it
-
     unadded_features = set(i+1 for i in range(0, num_features))
-    # current_set_of_features = set(random.sample(unadded_features, random.randint(1, num_features/2)))
-    # best_features = current_set_of_features.copy()
-    # unadded_features = unadded_features.difference(current_set_of_features)
     init_random_feature = random.choice(list(unadded_features))
     current_set_of_features = {init_random_feature}
     best_features = current_set_of_features.copy()
@@ -102,7 +102,7 @@ def CustomSearch(data, num_instances, num_features):
             current_set_of_features, random_feature)
         accept = AcceptanceProbability(accuracy, best_so_far_accuracy, temperature)
         if minimum_accuracy > accuracy:
-                print("*** NOTE: Significant drop in accuracy, stopping here.")
+                print("*** NOTE: Accuracy does not meet minimum accuracy, stopping here.")
                 break
         if (accept > random.random()):
             current_set_of_features.add(random_feature)
@@ -111,7 +111,7 @@ def CustomSearch(data, num_instances, num_features):
             if accuracy > best_so_far_accuracy:
                 print("\t** Accepting feature", random_feature, "to best set so far.")
                 best_so_far_accuracy = accuracy
-                best_features = current_set_of_features
+                best_features = current_set_of_features.copy()
         else:
             print("\t* Rejecting feature", random_feature, "from set.")
         temperature = temperature * alpha
@@ -140,15 +140,16 @@ def main():
     elif (alg == "BE"):
         BackwardElimination(normalized_instances, num_instances, num_features)
     else:
-        search_input = input("Press 'Enter' to begin simulated annealing:\n")
+        SA_num = int(input("Enter the number of times you would like to do simulated annealing:\n"))
         best_features = []
         best_accuracy = 0
-        while (search_input != "Q"):
+        for i in range(1, SA_num + 1):
+            print("**** On the %dth simulated annealing search... ****" % i)
+            print("-" * 50)
             features, accuracy = CustomSearch(normalized_instances, num_instances, num_features)
             if accuracy > best_accuracy:
                 best_accuracy = accuracy
-                best_features = features
-            search_input = input("Enter 'Q' to quit:\n")
+                best_features = features.copy()
             print("-" * 50)
         print("Ending simulated annealing with features", best_features, "and accuracy", best_accuracy)
 

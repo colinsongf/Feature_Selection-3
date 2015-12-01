@@ -12,7 +12,18 @@ Start with 0 features, add one at a time with a greedy search for best accuracy.
 Start with n features, remove one at a time with a greedy search for best accuracy.
 
 ## Custom Search
-For my custom search, I plan to use simulated annealing paired with the use of a heuristic.
-The heuristic favors selecting the second best feature of the previous search while searching the current features.
-It may be faster and better.
-If I'm too lazy, I'll drop the heuristic which also makes it better, but maybe slower.
+This custom search uses simulated annealing.
+It starts with a random single feature and moves to random neighboring state, meaning it adds one random feature.
+Depending on the temperature and quality of the solution it may or may not reject the feature.
+If it does reject, it will find another random feature to add.
+There is a threshold for a minimum accuracy the state has to meet to be considered for acceptance
+since from my observations features with less than 70% accuracy tend to be just flat out bad.
+If it does NOT meet it, we will stop there and assume any other features are just as bad.
+
+The search also can be run a number of times depending on user input.
+The search is quicker compared to the other two searches BUT it does depend on how many times you run SA.
+However, you will sacrifice speed for performance.
+The search may find a better solution due to the randomness of SA.
+In this case, you will sacrifice performance for speed.
+In practice SA does tend to give better results if the data sets used have a distribution with many local maximums
+but for the data sets used in this project, it might not be the case.
