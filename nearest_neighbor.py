@@ -24,7 +24,7 @@ def CheckClassification(instances, nearest_neighbor, one_out):
 
 def OneOutCrossValidation(instances, num_instances, current_features, my_feature):
     """
-    Pass in positive to add, negative to remove abs(my_feature)
+    Pass in positive to add, negative to remove, 0 for no feature
     """
     if my_feature > 0:
         list_features = list(current_features)
@@ -34,6 +34,8 @@ def OneOutCrossValidation(instances, num_instances, current_features, my_feature
         current_features.remove(my_feature)
         list_features = list(current_features)
         current_features.add(my_feature)
+    elif my_feature == 0:
+        list_features = list(current_features)
 
     num_correct = 0
     for i in range(0, num_instances):
