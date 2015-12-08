@@ -23,24 +23,28 @@ def ForwardSelection(data, num_instances, num_features):
     best_so_far_accuracy = 0
     print("-" * 50)
     for i in range(num_features):
-        print("On level %d of the search tree" % (i+ 1), "with our set as", current_set_of_features)
+        print("On level %d of the search tree" % (i+ 1),\
+            "with our set as", current_set_of_features)
         feature_to_add = -1
         for j in range(1, num_features + 1):
             if (j not in current_set_of_features):
-                accuracy = my_nn.OneOutCrossValidation(data, num_instances, current_set_of_features, j)
+                accuracy = my_nn.OneOutCrossValidation(data, num_instances,\
+                    current_set_of_features, j)
                 if accuracy > best_so_far_accuracy:
                     best_so_far_accuracy = accuracy
                     feature_to_add = j
         if (feature_to_add > 0):
             current_set_of_features.add(feature_to_add)
-            print("On level %d of the search tree, adding feature %d gives accuracy: %f" \
-            % ((i+1), feature_to_add, best_so_far_accuracy))
+            print("On level %d of the search tree," % ((i+1)),\
+                "adding feature %d gives accuracy: %f" \
+                % (feature_to_add, best_so_far_accuracy))
             print("-" * 50)
         else:
             print("*** NOTE: Accuracy decreasing, stopping here.")
             break
     print("-" * 50)
-    print("Best set of features to use: ", current_set_of_features, "with accuracy", best_so_far_accuracy)
+    print("Best set of features to use: ", current_set_of_features,\
+        "with accuracy", best_so_far_accuracy)
 
 def BackwardElimination(data, num_instances, num_features):
     """
@@ -51,24 +55,28 @@ def BackwardElimination(data, num_instances, num_features):
     best_so_far_accuracy = 0
     print("-" * 50)
     for i in range(num_features):
-        print("On level %d of the search tree" % (i+1), "with our set as", current_set_of_features)
+        print("On level %d of the search tree" % (i+1),\
+            "with our set as", current_set_of_features)
         feature_to_remove = -1
         for j in range(1, num_features + 1):
             if (j in current_set_of_features):
-                accuracy = my_nn.OneOutCrossValidation(data, num_instances, current_set_of_features, (-1 *j))
+                accuracy = my_nn.OneOutCrossValidation(data, num_instances,\
+                    current_set_of_features, (-1 *j))
                 if accuracy > best_so_far_accuracy:
                     best_so_far_accuracy = accuracy
                     feature_to_remove = j
         if (feature_to_remove > 0):
             current_set_of_features.remove(feature_to_remove)
-            print("On level %d of the search tree, removing feature %d gives accuracy: %f" \
-                % ((i+1), feature_to_remove, best_so_far_accuracy))
+            print("On level %d of the search tree," % (i+1),\
+                "removing feature %d gives accuracy: %f" \
+                % (feature_to_remove, best_so_far_accuracy))
             print("-" * 50)
         else:
             print("*** NOTE: Accuracy decreasing, stopping here.")
             break
     print("-" * 50)
-    print("Best set of features to use:", current_set_of_features,"with accuracy", best_so_far_accuracy)
+    print("Best set of features to use:", current_set_of_features,\
+        "with accuracy", best_so_far_accuracy)
 
 def main():
     file_name = input("Enter the name of the file to test: ")
@@ -83,7 +91,9 @@ def main():
                        CS - Custom Search
                     \r""")
     num_features = len(instances[0]) - 1
-    normalized_instances = my_norm.NormalizeData(instances, num_instances, num_features)
+    print("\t*** Normalizing data... ***")
+    normalized_instances = my_norm.NormalizeData(instances, num_instances,\
+        num_features)
     print("There are %d features with %d instances." % (num_features, num_instances))
     if (alg == "FS"):
         ForwardSelection(normalized_instances, num_instances, num_features)

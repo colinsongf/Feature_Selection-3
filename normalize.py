@@ -13,7 +13,10 @@ def CalcStd(instances, num_instances, num_features, mean):
     return std
 
 def NormalizeData(instances, num_instances, num_features):
-    """ Normalizes instances -- note: normalized_instances and instances are the same """
+    """
+    Normalizes instances
+    note: normalized_instances and instances are the same
+    """
     normalized_instances = list(instances)
     mean = CalcMean(instances, num_instances, num_features)
     std = CalcStd(instances, num_instances, num_features, mean)

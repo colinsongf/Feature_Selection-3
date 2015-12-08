@@ -9,7 +9,8 @@ def InitHeap(data, num_instances, num_features, current_set_of_features):
     my_queue = []
     for i in range(1, num_features + 1):
         if (i not in current_set_of_features):
-            accuracy = my_nn.OneOutCrossValidation(data, num_instances, current_set_of_features, i)
+            accuracy = my_nn.OneOutCrossValidation(data, num_instances, \
+                current_set_of_features, i)
             feature_pair = (1 - accuracy, i)
             heapq.heappush(my_queue, feature_pair)
     return my_queue
@@ -17,8 +18,8 @@ def InitHeap(data, num_instances, num_features, current_set_of_features):
 def SampleHeap(data, num_instances, num_features, current_set_of_features, my_queue):
     top = heapq.heappop(my_queue)
     feature_to_add = top[1]
-    accuracy = my_nn.OneOutCrossValidation(data, num_instances, current_set_of_features,\
-            feature_to_add)
+    accuracy = my_nn.OneOutCrossValidation(data, num_instances, \
+        current_set_of_features, feature_to_add)
     return feature_to_add, accuracy
 
 def AdaptiveGreedySearch(data, num_instances, num_features):
@@ -43,9 +44,11 @@ def AdaptiveGreedySearch(data, num_instances, num_features):
     print("-" * 50)
 
     current_set_of_features = set()
-    queue_features = InitHeap(data, num_instances, num_features, current_set_of_features)
-    feature_to_add, best_so_far_accuracy = SampleHeap(data, num_instances, num_features, \
-        current_set_of_features, queue_features)
+    queue_features = InitHeap(data, num_instances, num_features, \
+        current_set_of_features)
+    top = heapq.heappop(queue_features)
+    feature_to_add = top[1]
+    best_so_far_accuracy = 1 - top[0]
     current_set_of_features.add(feature_to_add)
 
     recently_reordered = False
@@ -55,18 +58,20 @@ def AdaptiveGreedySearch(data, num_instances, num_features):
     depth = 2
 
     print("-" * 50)
-    print("Initialized set with feature %d with accuracy: %f." % (feature_to_add, best_so_far_accuracy))
+    print("Initialized set with feature %d with accuracy: %f."\
+        % (feature_to_add, best_so_far_accuracy))
 
     while (len(queue_features) != 0 and len(current_set_of_features) < 5):
-        print("On iteration %d of the search" % (iteration), "with our set as",\
+        print("On iteration %d of the search" % (iteration), "with set as",\
            current_set_of_features)
         improved_accuracy = False
         for i in range(1, depth+1):
-            feature_to_add, accuracy = SampleHeap(data, num_instances, num_features, \
+            feature_to_add, accuracy = SampleHeap(data, num_instances, num_features,\
                 current_set_of_features, queue_features)
             if (accuracy > best_so_far_accuracy):
-                print("\t** On iteration %d level %d of the heap, adding feature %d gives us accuracy: %f **" \
-                    % (iteration, i, feature_to_add, accuracy))
+                print("\t** On iteration %d level %d of the heap," %\
+                    (iteration, i), "adding feature %d" % (feature_to_add),\
+                    "gives us accuracy: %f **" % (accuracy))
                 current_set_of_features.add(feature_to_add)
                 best_so_far_accuracy = accuracy
                 improved_accuracy = True
@@ -78,15 +83,18 @@ def AdaptiveGreedySearch(data, num_instances, num_features):
                 break
         if (not improved_accuracy and num_reorder < reorder_limit):
             print("-" * 50)
-            print("\t*** Next features in heap does NOT improve accuracy, reinitializing heap with new set.")
+            print("\t*** Next features in heap does NOT improve accuracy,",\
+                "reinitializing heap with new set.")
             print("-" * 50)
-            queue_features = InitHeap(data, num_instances, num_features, current_set_of_features)
+            queue_features = InitHeap(data, num_instances, num_features,\
+                current_set_of_features)
             print("-" * 50)
             recently_reordered = True
             num_reorder += 1
         else:
-            print("On iteration %d of the search, adding feature %d gives us accuracy: %f" \
-                % (iteration, feature_to_add, accuracy))
+            print("On iteration %d of the search, adding feature %d" %\
+                (iteration, feature_to_add), "gives us accuracy: %f" %\
+                (accuracy))
             print("-" * 50)
             current_set_of_features.add(feature_to_add)
             best_so_far_accuracy = accuracy
@@ -94,4 +102,5 @@ def AdaptiveGreedySearch(data, num_instances, num_features):
             # also remember to change reorder_limit
             # recently_reordered = False
         iteration += 1
-    print("Best set of features to use: ", current_set_of_features, "with accuracy", best_so_far_accuracy)
+    print("Best set of features to use: ", current_set_of_features, "with accuracy",\
+        best_so_far_accuracy)
