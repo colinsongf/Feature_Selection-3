@@ -12,18 +12,16 @@ Start with 0 features, add one at a time with a greedy search for best accuracy.
 Start with n features, remove one at a time with a greedy search for best accuracy.
 
 ## Custom Search
-This custom search uses simulated annealing.
-It starts with a random single feature and moves to random neighboring state, meaning it adds one random feature.
-Depending on the temperature and quality of the solution it may or may not reject the feature.
-If it does reject, it will find another random feature to add.
-There is a threshold for a minimum accuracy the state has to meet to be considered for acceptance
-since from my observations features with less than 70% accuracy tend to be just flat out bad.
-If it does NOT meet it, we will stop there and assume any other features are just as bad.
-
-The search also can be run a number of times depending on user input.
-The search is quicker compared to the other two searches BUT it does depend on how many times you run SA.
-However, you will sacrifice speed for performance.
-The search may find a better solution due to the randomness of SA.
-In this case, you will sacrifice performance for speed.
-In practice SA does tend to give better results if the data sets used have a distribution with many local maximums
-but for the data sets used in this project, it might not be the case.
+We first begin populating our heap with features based on NN and then initialize the our set
+with the first feature in our heap.
+After this, we begin popping features from our heap and testing it.
+If it improves our accuracy then we add it to our set.
+The number of times we pop from our heap should be limited based on the number of features.
+If doing this does not improve our accuracy we reorder the heap based on our current set and if
+it does not show any signs of improvement we stop.
+This search is faster because it assumes that the next X best features are going to be added.
+By testing it right away we avoid extensively testing other features.
+However, if it does not improve our accuracy we would have to reorder the heap, in the worst
+case it would have the same runtime as FS.
+But by limiting the number of times we reorder our heap we can make it faster than both FS and BE.
+Despite checking less it will also perform just as good as FS.
